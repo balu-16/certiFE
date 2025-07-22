@@ -48,7 +48,7 @@ export default function CertificateGenerator() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [isEligible, setIsEligible] = useState<boolean>(false);
   const [eligibilityLoading, setEligibilityLoading] = useState(true);
- const [downloadCount, setDownloadCount] = useState<number>(0);
+  const [downloadCount, setDownloadCount] = useState<number>(0);
   const { toast } = useToast();
 
   // Fetch courses and companies from Supabase
@@ -62,7 +62,7 @@ export default function CertificateGenerator() {
     try {
       const userPhone = localStorage.getItem('userPhone');
       if (!userPhone) return;
-      
+
       const { data: student, error } = await supabase
         .from('students')
         .select('eligible, downloaded_count')
@@ -85,7 +85,7 @@ export default function CertificateGenerator() {
 
     // Initial check
     refreshEligibility();
-    
+
     // Refresh eligibility every 10 seconds (reduced from 30 seconds for faster updates)
     const interval = setInterval(refreshEligibility, 10000);
 
@@ -206,7 +206,7 @@ export default function CertificateGenerator() {
   };
 
   const handleGenerate = async () => {
-     // Check download limit first
+    // Check download limit first
     if (downloadCount >= 2) {
       toast({
         title: "Request Limit Reached",
@@ -232,11 +232,11 @@ export default function CertificateGenerator() {
     try {
       // Fetch existing certificate ID and generate QR code
       const certId = await fetchExistingCertificateId();
-      
+
       if (certId) {
         // Generate the certificate PDF and save it as a request
         await generateAndSaveCertificateRequest(certId);
-        
+
         setIsGenerating(false);
         toast({
           title: "Certificate Request Submitted",
@@ -244,7 +244,7 @@ export default function CertificateGenerator() {
         });
         // Refresh download count after successful request
         await refreshEligibility();
-        
+
         // Reset form after request
         setTimeout(() => {
           handleReset();
@@ -330,7 +330,7 @@ export default function CertificateGenerator() {
       }
 
       setCertificateId(certificateIdToUse);
-      
+
       // Generate QR code with the existing certificate ID
       const qrDataUrl = await QRCode.toDataURL(certificateIdToUse, {
         width: 150,
@@ -341,7 +341,7 @@ export default function CertificateGenerator() {
         }
       });
       setQrCodeDataUrl(qrDataUrl);
-      
+
       return certificateIdToUse;
     } catch (error) {
       console.error('Error fetching certificate ID or generating QR code:', error);
@@ -448,14 +448,29 @@ export default function CertificateGenerator() {
     }
   };
 
+  // Helper function to determine which template to use based on company name
+  const getTemplateFileName = (companyName: string): string => {
+    // If company is "AddWise Tech Innovations" (case-insensitive), use template2.png
+    if (companyName && companyName.toLowerCase() === 'addwise tech innovations') {
+      console.log('🏢 Using template2.png for AddWise Tech Innovations');
+      return 'template2.png';
+    } else {
+      console.log('🏢 Using template1.png for default/other companies');
+      return 'template1.png';
+    }
+  };
+
   // Generate certificate HTML for PDF creation
   const generateCertificateHTML = (certId?: string, qrDataUrl?: string) => {
     // Use provided parameters or fallback to state values
     const certificateIdToUse = certId || certificateId;
     const qrCodeToUse = qrDataUrl || qrCodeDataUrl;
-    
+
+    // Determine which template to use based on the selected company
+    const templateFileName = getTemplateFileName(form.companyName);
+
     return `
-      <div style="width: 11in; height: 8.2in; position: relative; font-family: 'Cinzel Decorative Custom', serif; background-image: url('/certificates/template.png'); background-size: cover; background-position: center; background-repeat: no-repeat; overflow: hidden;">
+      <div style="width: 11in; height: 8.2in; position: relative; font-family: 'Cinzel Decorative Custom', serif; background-image: url('/certificates/${templateFileName}'); background-size: cover; background-position: center; background-repeat: no-repeat; overflow: hidden;">
         
         <!-- Student Name positioned exactly as in your template -->
         <div style="position: absolute; top: 3.45in; left: 50%; transform: translateX(-50%); font-size: 48px; font-weight: bold; color: #333; text-align: center; width: 8in; font-family: 'Cinzel Decorative Custom'; letter-spacing: 1px;">
@@ -531,7 +546,7 @@ export default function CertificateGenerator() {
           description: "Certificate generated and internship details saved successfully.",
         });
       }
-      
+
     } catch (error) {
       console.error('Error saving certificate metadata to Supabase:', error);
       toast({
