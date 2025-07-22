@@ -48,7 +48,7 @@ export default function CertificateGenerator() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [isEligible, setIsEligible] = useState<boolean>(false);
   const [eligibilityLoading, setEligibilityLoading] = useState(true);
-  const [downloadCount, setDownloadCount] = useState<number>(0);
+ const [downloadCount, setDownloadCount] = useState<number>(0);
   const { toast } = useToast();
 
   // Fetch courses and companies from Supabase
@@ -62,7 +62,7 @@ export default function CertificateGenerator() {
     try {
       const userPhone = localStorage.getItem('userPhone');
       if (!userPhone) return;
-
+      
       const { data: student, error } = await supabase
         .from('students')
         .select('eligible, downloaded_count')
@@ -85,7 +85,7 @@ export default function CertificateGenerator() {
 
     // Initial check
     refreshEligibility();
-
+    
     // Refresh eligibility every 10 seconds (reduced from 30 seconds for faster updates)
     const interval = setInterval(refreshEligibility, 10000);
 
@@ -206,7 +206,7 @@ export default function CertificateGenerator() {
   };
 
   const handleGenerate = async () => {
-    // Check download limit first
+     // Check download limit first
     if (downloadCount >= 2) {
       toast({
         title: "Request Limit Reached",
@@ -232,11 +232,11 @@ export default function CertificateGenerator() {
     try {
       // Fetch existing certificate ID and generate QR code
       const certId = await fetchExistingCertificateId();
-
+      
       if (certId) {
         // Generate the certificate PDF and save it as a request
         await generateAndSaveCertificateRequest(certId);
-
+        
         setIsGenerating(false);
         toast({
           title: "Certificate Request Submitted",
@@ -244,7 +244,7 @@ export default function CertificateGenerator() {
         });
         // Refresh download count after successful request
         await refreshEligibility();
-
+        
         // Reset form after request
         setTimeout(() => {
           handleReset();
@@ -330,7 +330,7 @@ export default function CertificateGenerator() {
       }
 
       setCertificateId(certificateIdToUse);
-
+      
       // Generate QR code with the existing certificate ID
       const qrDataUrl = await QRCode.toDataURL(certificateIdToUse, {
         width: 150,
@@ -341,7 +341,7 @@ export default function CertificateGenerator() {
         }
       });
       setQrCodeDataUrl(qrDataUrl);
-
+      
       return certificateIdToUse;
     } catch (error) {
       console.error('Error fetching certificate ID or generating QR code:', error);
@@ -465,37 +465,108 @@ export default function CertificateGenerator() {
     // Use provided parameters or fallback to state values
     const certificateIdToUse = certId || certificateId;
     const qrCodeToUse = qrDataUrl || qrCodeDataUrl;
-
+    
     // Determine which template to use based on the selected company
     const templateFileName = getTemplateFileName(form.companyName);
-
+    
     return `
-      <div style="width: 11in; height: 8.2in; position: relative; font-family: 'Cinzel Decorative Custom', serif; background-image: url('/certificates/${templateFileName}'); background-size: cover; background-position: center; background-repeat: no-repeat; overflow: hidden;">
+      <div style="
+        width: 11in; 
+        height: 8.2in; 
+        position: relative; 
+        font-family: 'Cinzel Decorative Custom', serif; 
+        background-image: url('/certificates/${templateFileName}'); 
+        background-size: 100% 100%; 
+        background-position: center center; 
+        background-repeat: no-repeat; 
+        background-attachment: scroll;
+        overflow: hidden;
+        display: block;
+        margin: 0;
+        padding: 0;
+        border: none;
+        box-sizing: border-box;
+      ">
         
-        <!-- Student Name positioned exactly as in your template -->
-        <div style="position: absolute; top: 3.45in; left: 50%; transform: translateX(-50%); font-size: 48px; font-weight: bold; color: #333; text-align: center; width: 8in; font-family: 'Cinzel Decorative Custom'; letter-spacing: 1px;">
+        <!-- Student Name positioned exactly as in template1.png for consistency -->
+        <div style="
+          position: absolute; 
+          top: 3.45in; 
+          left: 50%; 
+          transform: translateX(-50%); 
+          font-size: 48px; 
+          font-weight: bold; 
+          color: #333333; 
+          text-align: center; 
+          width: 8in; 
+          font-family: 'Cinzel Decorative Custom', serif; 
+          letter-spacing: 1px;
+          z-index: 2;
+          text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        ">
           ${form.studentName}
         </div>
         
-        <!-- Completion Text & Course/Company/Dates positioned as in your template -->
-        <div style="position: absolute; top: 4.4in; left: 50%; transform: translateX(-50%); font-size: 20px; color: #555; text-align: center; width: 9in; line-height: 1.4; font-family: 'Cinzel Decorative Custom';">
+        <!-- Completion Text & Course/Company/Dates positioned exactly as in template1.png for consistency -->
+        <div style="
+          position: absolute; 
+          top: 4.4in; 
+          left: 50%; 
+          transform: translateX(-50%); 
+          font-size: 20px; 
+          color: #555555; 
+          text-align: center; 
+          width: 9in; 
+          line-height: 1.4; 
+          font-family: 'Cinzel Decorative Custom', serif;
+          z-index: 2;
+          text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        ">
           <i>has successfully completed a <strong style="color: #000000;">${form.courseName}</strong> program at <strong style="color: #000000;">${form.companyName}</strong>, from <strong style="color: #000000;">${formatDateForCertificate(form.startDate!)}</strong> to <strong style="color: #000000;">${formatDateForCertificate(form.endDate!)}</strong>.</i>
         </div>
         
         <!-- QR Code positioned at the blue circle location (top right) -->
         ${qrCodeToUse ? `
-        <div style="position: absolute; top: 1.5in; right: 1.0in; z-index: 10;">
+        <div style="
+          position: absolute; 
+          top: 1.5in; 
+          right: 1.0in; 
+          z-index: 10;
+          background: rgba(255,255,255,0.9);
+          border-radius: 8px;
+          padding: 4px;
+        ">
           <img src="${qrCodeToUse}" style="width: 80px; height: 80px; display: block;" alt="QR Code">
         </div>
         ` : ''}
         
-        <!-- Certificate ID positioned as in your template (bottom left) - no background -->
-        <div style="position: absolute; bottom: 0.55in; left: 1.7in; font-size: 12px; color: #000; text-align: left; font-family: sans-serif;">
+        <!-- Certificate ID positioned exactly as in template1.png for consistency -->
+        <div style="
+          position: absolute; 
+          bottom: 0.55in; 
+          left: 1.7in; 
+          font-size: 12px; 
+          color: #000000; 
+          text-align: left; 
+          font-family: sans-serif;
+          z-index: 2;
+          text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        ">
           Certificate ID: ${certificateIdToUse || 'PENDING'}
         </div>
         
-        <!-- Issued Date positioned as in your template (bottom right) - no background -->
-        <div style="position: absolute; bottom: 0.55in; right: 1.65in; font-size: 12px; color: #666; text-align: right; font-family: sans-serif;">
+        <!-- Issued Date positioned exactly as in template1.png for consistency -->
+        <div style="
+          position: absolute; 
+          bottom: 0.55in; 
+          right: 1.65in; 
+          font-size: 12px; 
+          color: #666666; 
+          text-align: right; 
+          font-family: sans-serif;
+          z-index: 2;
+          text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        ">
           Issued on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
       </div>
@@ -546,7 +617,7 @@ export default function CertificateGenerator() {
           description: "Certificate generated and internship details saved successfully.",
         });
       }
-
+      
     } catch (error) {
       console.error('Error saving certificate metadata to Supabase:', error);
       toast({
