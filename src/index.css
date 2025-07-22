@@ -1,0 +1,325 @@
+/* Import Tailwind base styles */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Import react-day-picker styles */
+@import 'react-day-picker/dist/style.css';
+
+/* Custom react-day-picker styling */
+.rdp {
+  --rdp-cell-size: 40px;
+  --rdp-accent-color: hsl(197 75% 27%);
+  --rdp-background-color: hsl(0 0% 100%);
+  --rdp-accent-color-dark: hsl(197 82% 26%);
+  --rdp-background-color-dark: hsl(222 84% 4.9%);
+  --rdp-outline: 2px solid var(--rdp-accent-color);
+  --rdp-outline-selected: 2px solid var(--rdp-accent-color);
+  --rdp-selected-color: hsl(0 0% 100%);
+}
+
+/* Force calendar alignment - override any conflicting styles */
+.rdp-months {
+  display: flex !important;
+}
+
+.rdp-month {
+  margin: 0 !important;
+}
+
+.rdp-table {
+  margin: 0 !important;
+  width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: separate !important;
+}
+
+.rdp-head_row {
+  display: flex !important;
+  width: 100% !important;
+}
+
+.rdp-head_cell {
+  width: calc(100% / 7) !important;
+  min-width: calc(100% / 7) !important;
+  max-width: calc(100% / 7) !important;
+  height: var(--rdp-cell-size) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  text-transform: uppercase !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: hsl(222 84% 4.9%) !important;
+  text-align: center !important;
+  flex: 1 1 calc(100% / 7) !important;
+  box-sizing: border-box !important;
+}
+
+.rdp-row {
+  display: flex !important;
+  width: 100% !important;
+}
+
+.rdp-cell {
+  width: calc(100% / 7) !important;
+  min-width: calc(100% / 7) !important;
+  max-width: calc(100% / 7) !important;
+  height: var(--rdp-cell-size) !important;
+  text-align: center !important;
+  font-size: 0.875rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 1 1 calc(100% / 7) !important;
+  box-sizing: border-box !important;
+}
+
+.rdp-button {
+  border: none !important;
+  width: var(--rdp-cell-size) !important;
+  height: var(--rdp-cell-size) !important;
+  background: transparent !important;
+  color: hsl(222 84% 4.9%) !important;
+  cursor: pointer !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+}
+
+.rdp-button:hover {
+  background-color: hsl(210 40% 96.1%);
+}
+
+.rdp-button:focus {
+  outline: var(--rdp-outline);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+.rdp-day_today {
+  background-color: hsl(210 40% 96.1%);
+  font-weight: 500;
+}
+
+.rdp-day_selected {
+  background-color: var(--rdp-accent-color) !important;
+  color: var(--rdp-selected-color) !important;
+  font-weight: 500;
+}
+
+.rdp-day_selected:hover {
+  background-color: var(--rdp-accent-color-dark) !important;
+}
+
+.rdp-day_outside {
+  color: hsl(222 84% 4.9% / 0.5);
+}
+
+.rdp-day_disabled {
+  color: hsl(222 84% 4.9% / 0.3);
+  cursor: not-allowed;
+}
+
+.rdp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+}
+
+.rdp-nav_button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(214.3 31.8% 91.4%);
+  background: transparent;
+  color: hsl(222 84% 4.9%);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: absolute;
+}
+
+.rdp-nav_button_prev {
+  left: 0;
+}
+
+.rdp-nav_button_next {
+  right: 0;
+}
+
+.rdp-nav_button:hover {
+  background-color: hsl(210 40% 96.1%);
+}
+
+.rdp-nav_button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rdp-caption {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.rdp-caption_label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(222 84% 4.9%);
+  text-align: center;
+}
+
+/* NIGHA TECH CERTIFICATE PORTAL DESIGN SYSTEM */
+
+@layer base {
+  :root {
+    /* NIGHA TECH Custom Color Palette */
+    --background: 0 0% 100%; /* Pure white */
+    --foreground: 222 84% 4.9%; /* Very dark text for maximum contrast */
+
+    --card: 0 0% 100%; /* Pure white cards */
+    --card-foreground: 222 84% 4.9%; /* Dark text on cards */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 4.9%;
+
+    /* Primary: Dark Teal Blue */
+    --primary: 197 75% 27%; /* #0B5F7C */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+
+    /* Secondary: Deep Cool Teal */
+    --secondary: 197 82% 26%; /* #08617D */
+    --secondary-foreground: 0 0% 100%; /* White text on secondary */
+
+    /* Accent: Bright Golden Yellow */
+    --accent: 54 87% 53%; /* #F3DF20 */
+    --accent-foreground: 222 84% 4.9%; /* Dark text on yellow */
+
+    /* Muted: Light gray for better contrast */
+    --muted: 210 40% 96.1%; /* Light gray */
+    --muted-foreground: 222 84% 4.9%; /* Dark text on muted */
+
+    /* Highlight: Olive Yellow/Chartreuse */
+    --highlight: 62 69% 55%; /* #D7D640 */
+    --highlight-foreground: 222 84% 4.9%; /* Dark text on highlight */
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%; /* White text on destructive */
+
+    --border: 197 75% 27% / 0.2; /* Teal border with transparency */
+    --input: 214.3 31.8% 91.4%; /* Light gray input background */
+    --ring: 54 87% 53%; /* Golden focus ring */
+
+    --radius: 0.75rem;
+
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(197 75% 27%), hsl(197 82% 26%));
+    --gradient-accent: linear-gradient(135deg, hsl(54 87% 53%), hsl(62 69% 55%));
+    
+    /* Shadows */
+    --shadow-teal: 0 10px 30px -10px hsl(197 75% 27% / 0.3);
+    --shadow-golden: 0 0 20px hsl(54 87% 53% / 0.4);
+    
+    /* Certificate background */
+    --certificate-bg: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='80' height='60' x='10' y='20' fill='none' stroke='%230B5F7C' stroke-width='2' opacity='0.1'/%3E%3Cpath d='M20 30h40M20 40h40M20 50h40' stroke='%230B5F7C' stroke-width='1' opacity='0.1'/%3E%3C/svg%3E");
+
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 197 75% 27%; /* Dark Teal Blue */
+    --sidebar-foreground: 0 0% 100%; /* White text in sidebar */
+    --sidebar-primary: 54 87% 53%; /* Bright Golden Yellow */
+    --sidebar-primary-foreground: 222 84% 4.9%; /* Dark text on golden */
+    --sidebar-accent: 185 72% 23%; /* Muted Dark Cyan */
+    --sidebar-accent-foreground: 0 0% 100%; /* White text on accent */
+    --sidebar-border: 197 75% 27% / 0.3; /* Teal border */
+    --sidebar-ring: 54 87% 53%; /* Golden ring */
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: sans-serif;
+    color: hsl(222 84% 4.9%); /* Force dark text color */
+  }
+  
+  /* Force white text where needed and dark text on light backgrounds */
+  h1, h2, h3, h4, h5, h6 {
+    color: #0B5F7C !important; /* Dark teal for headings */
+  }
+  
+  /* Dark text for body elements, but exclude sidebar */
+  p:not([data-sidebar] *), span:not([data-sidebar] *), div:not([data-sidebar] *), label:not([data-sidebar] *) {
+    color: #1a202c !important; /* Very dark text for body */
+  }
+  
+  /* Ensure sidebar text stays white */
+  [data-sidebar] p, [data-sidebar] span, [data-sidebar] div, [data-sidebar] label,
+  [data-sidebar] * {
+    color: #FFFFFF !important;
+  }
+  
+  /* White text class - use this for dark backgrounds */
+  .text-white, .text-white * {
+    color: #FFFFFF !important;
+  }
+  
+  /* Muted text - still readable gray */
+  .text-muted-foreground {
+    color: #64748b !important;
+  }
+  
+  /* Primary colored text */
+  .text-primary {
+    color: #0B5F7C !important;
+  }
+  
+  /* Card styling */
+  .card {
+    background-color: #FFFFFF !important;
+    color: #1a202c !important;
+  }
+  
+  /* Table text */
+  table, th, td {
+    color: #1a202c !important;
+  }
+  
+  /* Form elements */
+  input, textarea, select {
+    color: #1a202c !important;
+    background-color: #FFFFFF !important;
+  }
+  
+  /* Sidebar specific styles */
+  .sidebar-text {
+    color: #FFFFFF !important;
+  }
+  
+  /* Dashboard welcome text */
+  .welcome-title {
+    color: #0B5F7C !important;
+    font-weight: bold;
+  }
+  
+  .welcome-subtitle {
+    color: #1a202c !important;
+  }
+}
