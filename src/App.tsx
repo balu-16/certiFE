@@ -24,6 +24,8 @@ import AdminCertificates from "./pages/admin/Certificates";
 import AdminCourses from "./pages/admin/Courses";
 import AdminCompanyInfo from "./pages/admin/CompanyInfo";
 import AdminRequests from "./pages/admin/Requests";
+import AdminTemplates from "./pages/admin/Templates";
+import AdminColleges from "./pages/admin/Colleges";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +99,16 @@ const App = () => (
             <Route path="/admin/company-info" element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <AdminCompanyInfo />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/templates" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminTemplates />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/colleges" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminColleges />
               </ProtectedRoute>
             } />
             

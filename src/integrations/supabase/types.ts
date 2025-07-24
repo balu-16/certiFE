@@ -47,7 +47,7 @@ export interface Database {
           created_at: string
           year: number
           branch: string
-          college_name: string
+          college_id: number | null
           internship_start_date: string | null
           internship_end_date: string | null
           company_id: number | null
@@ -71,7 +71,7 @@ export interface Database {
           created_at?: string
           year?: number
           branch?: string
-          college_name?: string
+          college_id?: number | null
           internship_start_date?: string | null
           internship_end_date?: string | null
           company_id?: number | null
@@ -95,7 +95,7 @@ export interface Database {
           created_at?: string
           year?: number
           branch?: string
-          college_name?: string
+          college_id?: number | null
           internship_start_date?: string | null
           internship_end_date?: string | null
           company_id?: number | null
@@ -120,6 +120,13 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "courses"
             referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "fk_college"
+            columns: ["college_id"]
+            isOneToOne: false
+            referencedRelation: "colleges"
+            referencedColumns: ["college_id"]
           }
         ]
       }
@@ -237,6 +244,53 @@ export interface Database {
         }
         Relationships: []
       }
+      templates: {
+        Row: {
+          id: number
+          template: string
+          company_id: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          template: string
+          company_id: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          template?: string
+          company_id?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
+          }
+        ]
+      }
+      colleges: {
+        Row: {
+          college_id: number
+          college_name: string
+          created_at: string
+        }
+        Insert: {
+          college_id?: number
+          college_name: string
+          created_at?: string
+        }
+        Update: {
+          college_id?: number
+          college_name?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -261,6 +315,8 @@ export type AdminLoginLog = Database['public']['Tables']['admin_login_logs']['Ro
 export type OtpSession = Database['public']['Tables']['otp_sessions']['Row'];
 export type Course = Database['public']['Tables']['courses']['Row'];
 export type Company = Database['public']['Tables']['companies']['Row'];
+export type Template = Database['public']['Tables']['templates']['Row'];
+export type College = Database['public']['Tables']['colleges']['Row'];
 
 export type AdminInsert = Database['public']['Tables']['admin']['Insert'];
 export type StudentInsert = Database['public']['Tables']['students']['Insert'];
@@ -269,6 +325,8 @@ export type AdminLoginLogInsert = Database['public']['Tables']['admin_login_logs
 export type OtpSessionInsert = Database['public']['Tables']['otp_sessions']['Insert'];
 export type CourseInsert = Database['public']['Tables']['courses']['Insert'];
 export type CompanyInsert = Database['public']['Tables']['companies']['Insert'];
+export type TemplateInsert = Database['public']['Tables']['templates']['Insert'];
+export type CollegeInsert = Database['public']['Tables']['colleges']['Insert'];
 
 export type AdminUpdate = Database['public']['Tables']['admin']['Update'];
 export type StudentUpdate = Database['public']['Tables']['students']['Update'];
@@ -277,3 +335,5 @@ export type AdminLoginLogUpdate = Database['public']['Tables']['admin_login_logs
 export type OtpSessionUpdate = Database['public']['Tables']['otp_sessions']['Update'];
 export type CourseUpdate = Database['public']['Tables']['courses']['Update'];
 export type CompanyUpdate = Database['public']['Tables']['companies']['Update'];
+export type TemplateUpdate = Database['public']['Tables']['templates']['Update'];
+export type CollegeUpdate = Database['public']['Tables']['colleges']['Update'];

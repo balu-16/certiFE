@@ -214,10 +214,10 @@ export default function UserCertificates() {
           <CardHeader>
             <CardTitle className="text-lg text-primary flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              Custom Certificate Generator
+              Get Your Certificate
             </CardTitle>
             <CardDescription>
-              Generate and download custom certificates instantly (for demonstration purposes)
+              Download certificates instantly
             </CardDescription>
           </CardHeader>
           <CardContent>

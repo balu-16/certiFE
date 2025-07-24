@@ -728,11 +728,20 @@ export default function CertificateGenerator() {
             <Input
               id="studentName"
               value={form.studentName}
-              onChange={(e) => setForm(prev => ({ ...prev, studentName: e.target.value }))}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 22) {
+                  setForm(prev => ({ ...prev, studentName: value }));
+                }
+              }}
               placeholder="Enter your full name"
               className="text-lg"
               disabled={!isEligible || downloadCount >= 2}
+              maxLength={22}
             />
+            <p className="text-xs text-muted-foreground">
+              Name should be less than 20 characters ({form.studentName.length}/22)
+            </p>
           </div>
 
           {/* Course Name */}

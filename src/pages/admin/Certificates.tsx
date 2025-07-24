@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Table, 
   TableBody, 
@@ -33,11 +34,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Award, Download, Search, Filter, Users, Plus, Edit, Trash2, UserPlus, ArrowLeft } from 'lucide-react';
+import { Award, Download, Search, Filter, Users, Plus, Edit, Trash2, UserPlus, ArrowLeft, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { AppConfig } from '@/config/app.config';
+import { convertImageToPdf } from '@/utils/imageToPdfConverter';
 
 interface Student {
   id: string;
@@ -47,8 +49,10 @@ interface Student {
   year?: number;
   branch?: string;
   collegeName?: string;
+  collegeId?: number;
   certificateId?: string;
   eligible?: boolean;
+  downloadedCount?: number;
 }
 
 interface Certificate {
@@ -75,7 +79,7 @@ interface NewStudent {
   phone_number: string;
   year?: number;
   branch?: string;
-  college_name?: string;
+  college_id?: number;
 }
 
 export default function AdminCertificates() {
@@ -84,21 +88,35 @@ export default function AdminCertificates() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [colleges, setColleges] = useState<{college_id: number; college_name: string}[]>([]);
+  
+  // Dialog states
+  const [showCourseDialog, setShowCourseDialog] = useState(false);
+  const [showStudentDialog, setShowStudentDialog] = useState(false);
+  const [showEditStudentDialog, setShowEditStudentDialog] = useState(false);
   
   // Course management
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [showCourseDialog, setShowCourseDialog] = useState(false);
-  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [newCourseName, setNewCourseName] = useState('');
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   
   // Student management
-  const [showStudentDialog, setShowStudentDialog] = useState(false);
   const [newStudent, setNewStudent] = useState<NewStudent>({
     name: '',
     phone_number: '',
     year: undefined,
     branch: '',
-    college_name: ''
+    college_id: undefined
+  });
+  
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [editStudentData, setEditStudentData] = useState({
+    name: '',
+    phone: '',
+    year: undefined as number | undefined,
+    branch: '',
+    collegeId: undefined as number | undefined,
+    downloadedCount: 0
   });
   
   const navigate = useNavigate();
@@ -196,6 +214,23 @@ export default function AdminCertificates() {
       }
     } catch (error) {
       console.error('Error in fetchCourses:', error);
+    }
+  };
+
+  const fetchColleges = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('colleges')
+        .select('college_id, college_name')
+        .order('college_name');
+
+      if (error) {
+        console.error('Error fetching colleges:', error);
+      } else {
+        setColleges(data || []);
+      }
+    } catch (error) {
+      console.error('Error in fetchColleges:', error);
     }
   };
 
@@ -320,7 +355,7 @@ export default function AdminCertificates() {
           phone_number: newStudent.phone_number.trim(),
           year: newStudent.year,
           branch: newStudent.branch?.trim() || null,
-          college_name: newStudent.college_name?.trim() || null,
+          college_id: newStudent.college_id || null,
           eligible: false
         }]);
 
@@ -338,7 +373,7 @@ export default function AdminCertificates() {
         phone_number: '',
         year: undefined,
         branch: '',
-        college_name: ''
+        college_id: undefined
       });
       setShowStudentDialog(false);
       fetchStudentsData();
@@ -379,12 +414,186 @@ export default function AdminCertificates() {
     }
   };
 
+  const handleEditStudent = (student: Student) => {
+    setEditingStudent(student);
+    setEditStudentData({
+      name: student.name,
+      phone: student.phone,
+      year: student.year,
+      branch: student.branch || '',
+      collegeId: student.collegeId,
+      downloadedCount: student.downloadedCount || 0
+    });
+    setShowEditStudentDialog(true);
+  };
+
+  const handleUpdateStudent = async () => {
+    if (!editingStudent) return;
+
+    try {
+      const { error } = await supabase
+        .from('students')
+        .update({
+          name: editStudentData.name,
+          phone_number: editStudentData.phone,
+          year: editStudentData.year,
+          branch: editStudentData.branch,
+          college_id: editStudentData.collegeId,
+          downloaded_count: editStudentData.downloadedCount
+        })
+        .eq('student_id', parseInt(editingStudent.id));
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Student updated successfully.",
+      });
+
+      setShowEditStudentDialog(false);
+      setEditingStudent(null);
+      fetchStudentsData();
+    } catch (error) {
+      console.error('Error updating student:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update student.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const previewCertificate = async (studentId: string, studentName: string) => {
+    try {
+      console.log('🔍 Starting certificate preview for student:', studentName);
+      
+      // Fetch student certificate data from database
+      const { data: studentData, error } = await supabase
+        .from('students')
+        .select('certificate, certificate_approved, eligible')
+        .eq('student_id', parseInt(studentId))
+        .single();
+
+      if (error) {
+        throw new Error('Failed to fetch student certificate data');
+      }
+
+      if (!studentData) {
+        throw new Error('Student not found');
+      }
+
+      // Check if student is eligible and has an approved certificate
+      if (!studentData.eligible) {
+        toast({
+          title: "Not Eligible",
+          description: "This student is not eligible for a certificate.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!studentData.certificate_approved) {
+        toast({
+          title: "Certificate Not Approved",
+          description: "This student's certificate has not been approved yet.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!studentData.certificate || studentData.certificate.length === 0) {
+        toast({
+          title: "No Certificate",
+          description: "No certificate data found for this student.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('📊 Certificate data type:', typeof studentData.certificate);
+      console.log('📏 Certificate data length:', studentData.certificate.length);
+      
+      console.log('🔄 Converting image to PDF for preview...');
+      
+      // Convert image data to PDF
+      const result = await convertImageToPdf(studentData.certificate);
+      
+      if (!result.success || !result.blob) {
+        console.error('❌ Failed to convert image to PDF:', result.error);
+        throw new Error(result.error || 'Failed to convert certificate to PDF');
+      }
+      
+      console.log('📦 PDF blob created for preview:', {
+        size: result.blob.size,
+        type: result.blob.type,
+        isEmpty: result.blob.size === 0
+      });
+      
+      if (result.blob.size === 0) {
+        console.error('❌ Generated PDF blob is empty');
+        throw new Error('Generated PDF blob is empty');
+      }
+      
+      console.log('🔗 Creating preview URL...');
+      const url = URL.createObjectURL(result.blob);
+      
+      console.log('🪟 Opening preview window...');
+      const previewWindow = window.open(url, '_blank');
+      
+      if (!previewWindow) {
+        console.warn('⚠️ Pop-up blocked, creating download link instead...');
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${studentName}_certificate_preview.pdf`;
+        link.click();
+        
+        toast({
+          title: "Preview Downloaded",
+          description: "Pop-up was blocked. Certificate preview has been downloaded instead.",
+        });
+      } else {
+        console.log('✅ Preview window opened successfully');
+        toast({
+          title: "Preview Opened",
+          description: `Certificate preview for ${studentName} opened in new tab`,
+        });
+      }
+      
+      // Clean up URL after a delay
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 10000);
+      
+    } catch (error) {
+      console.error('❌ Error previewing certificate:', error);
+      toast({
+        title: "Preview Error",
+        description: error instanceof Error ? error.message : "Failed to preview certificate",
+        variant: "destructive"
+      });
+    }
+  };
+
   const fetchStudentsData = async () => {
     try {
       setLoading(true);
       const { data: studentsData, error } = await supabase
         .from('students')
-        .select('student_id, name, phone_number, certificate_id, eligible, created_at, year, branch, college_name')
+        .select(`
+          student_id, 
+          name, 
+          phone_number, 
+          certificate_id, 
+          eligible, 
+          created_at, 
+          year, 
+          branch, 
+          college_id,
+          downloaded_count,
+          colleges(college_name)
+        `)
         .order('student_id', { ascending: true });
 
       if (error) {
@@ -422,9 +631,11 @@ export default function AdminCertificates() {
           certificates,
           year: student.year || undefined,
           branch: student.branch || undefined,
-          collegeName: student.college_name || undefined,
+          collegeName: student.colleges?.college_name || undefined,
+          collegeId: student.college_id || undefined,
           certificateId: student.certificate_id || undefined,
-          eligible: student.eligible || false
+          eligible: student.eligible || false,
+          downloadedCount: student.downloaded_count || 0
         };
       }) || [];
 
@@ -445,6 +656,7 @@ export default function AdminCertificates() {
   useEffect(() => {
     fetchStudentsData();
     fetchCourses();
+    fetchColleges();
   }, []);
 
   useEffect(() => {
@@ -638,30 +850,53 @@ export default function AdminCertificates() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Trash2 className="w-4 h-4" />
+                        {/* Edit Button */}
+                        <Button
+                          onClick={() => handleEditStudent(student)}
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        
+                        {/* Preview Button - only show for eligible students with approved certificates */}
+                        {student.eligible && (
+                          <Button
+                            onClick={() => previewCertificate(student.id, student.name)}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                          >
+                            <Eye className="w-4 h-4" />
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Student</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete {student.name}? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteStudent(student.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                        )}
+                        
+                        {/* Delete Button */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Student</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete {student.name}? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteStudent(student.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -845,13 +1080,22 @@ export default function AdminCertificates() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="studentCollege">College Name</Label>
-                <Input
-                  id="studentCollege"
-                  placeholder="Enter college name"
-                  value={newStudent.college_name}
-                  onChange={(e) => setNewStudent({...newStudent, college_name: e.target.value})}
-                />
+                <Label htmlFor="studentCollege">College</Label>
+                <Select
+                  value={newStudent.college_id?.toString() || ''}
+                  onValueChange={(value) => setNewStudent({...newStudent, college_id: value ? parseInt(value) : undefined})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a college" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {colleges.map((college) => (
+                      <SelectItem key={college.college_id} value={college.college_id.toString()}>
+                        {college.college_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="flex gap-2 pt-4">
@@ -869,9 +1113,113 @@ export default function AdminCertificates() {
                       phone_number: '',
                       year: undefined,
                       branch: '',
-                      college_name: ''
+                      college_id: undefined
                     });
                     setShowStudentDialog(false);
+                  }}
+                  variant="outline"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Student Dialog */}
+        <Dialog open={showEditStudentDialog} onOpenChange={setShowEditStudentDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-2xl text-primary">Edit Student</DialogTitle>
+              <DialogDescription>
+                Update student information
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="editStudentName">Name *</Label>
+                <Input
+                  id="editStudentName"
+                  placeholder="Enter student name"
+                  value={editStudentData.name}
+                  onChange={(e) => setEditStudentData({...editStudentData, name: e.target.value})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="editStudentPhone">Phone Number *</Label>
+                <Input
+                  id="editStudentPhone"
+                  placeholder="Enter phone number"
+                  value={editStudentData.phone}
+                  onChange={(e) => setEditStudentData({...editStudentData, phone: e.target.value})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="editStudentYear">Year</Label>
+                <Input
+                  id="editStudentYear"
+                  type="number"
+                  placeholder="Enter year (e.g., 2024)"
+                  value={editStudentData.year || ''}
+                  onChange={(e) => setEditStudentData({...editStudentData, year: e.target.value ? parseInt(e.target.value) : undefined})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="editStudentBranch">Branch</Label>
+                <Input
+                  id="editStudentBranch"
+                  placeholder="Enter branch (e.g., Computer Science)"
+                  value={editStudentData.branch}
+                  onChange={(e) => setEditStudentData({...editStudentData, branch: e.target.value})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="editStudentCollege">College</Label>
+                <Select
+                  value={editStudentData.collegeId?.toString() || ''}
+                  onValueChange={(value) => setEditStudentData({...editStudentData, collegeId: value ? parseInt(value) : undefined})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a college" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {colleges.map((college) => (
+                      <SelectItem key={college.college_id} value={college.college_id.toString()}>
+                        {college.college_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="editStudentDownloadCount">Download Count</Label>
+                <Input
+                  id="editStudentDownloadCount"
+                  type="number"
+                  placeholder="Enter download count"
+                  value={editStudentData.downloadedCount}
+                  onChange={(e) => setEditStudentData({...editStudentData, downloadedCount: parseInt(e.target.value) || 0})}
+                />
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={handleUpdateStudent}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Update Student
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowEditStudentDialog(false);
+                    setEditingStudent(null);
                   }}
                   variant="outline"
                 >

@@ -155,8 +155,8 @@ export default function AdminCompanyInfo() {
                 <div>
                   <div className="font-medium text-primary">Headquarters</div>
                   <div className="text-sm text-muted-foreground">
-                    Mumbai, Maharashtra<br />
-                    India - 400001
+                    Vijayawada, Andhra Pradesh<br />
+                    India - 520003
                   </div>
                 </div>
               </div>
@@ -166,7 +166,7 @@ export default function AdminCompanyInfo() {
                 <div>
                   <div className="font-medium text-primary">Admin Phone</div>
                   <div className="text-sm text-muted-foreground">
-                    +91 98765 43210
+                    +91 82978 08410
                   </div>
                 </div>
               </div>
@@ -176,7 +176,7 @@ export default function AdminCompanyInfo() {
                 <div>
                   <div className="font-medium text-primary">Admin Email</div>
                   <div className="text-sm text-muted-foreground">
-                    admin@nighatech.com
+                    info@nighatech.com
                   </div>
                 </div>
               </div>
@@ -200,7 +200,7 @@ export default function AdminCompanyInfo() {
                 <div>
                   <div className="font-medium text-primary">Total Students</div>
                   <div className="text-sm text-muted-foreground">
-                    5000+ Active Learners
+                    200+ Active Learners
                   </div>
                 </div>
               </div>
@@ -210,7 +210,7 @@ export default function AdminCompanyInfo() {
                 <div>
                   <div className="font-medium text-primary">Certificates Issued</div>
                   <div className="text-sm text-muted-foreground">
-                    8000+ Verified Certificates
+                    100+ Verified Certificates
                   </div>
                 </div>
               </div>

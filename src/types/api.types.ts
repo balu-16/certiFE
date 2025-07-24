@@ -8,7 +8,7 @@ export interface Student {
   email?: string;
   year?: string;
   branch?: string;
-  college_name?: string;
+  college_id?: number;
   eligible: boolean;
   certificate?: string;
   certificate_id?: string;

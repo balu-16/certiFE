@@ -8,7 +8,7 @@ export const mockStudent = {
   email: 'test@example.com',
   year: '2024',
   branch: 'Computer Science',
-  college_name: 'Test College',
+  college_id: 1,
   eligible: true,
   certificate: null,
   certificate_id: null,
@@ -30,15 +30,28 @@ export const mockApiResponse = {
   })
 };
 
+// Simple mock fetch function without Jest dependencies
 export const createMockFetch = (response: any, ok = true) => {
-  return jest.fn(() =>
+  const mockFn = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
     Promise.resolve({
       ok,
       json: () => Promise.resolve(response),
       status: ok ? 200 : 500,
-      statusText: ok ? 'OK' : 'Internal Server Error'
-    })
-  ) as jest.MockedFunction<typeof fetch>;
+      statusText: ok ? 'OK' : 'Internal Server Error',
+      headers: new Headers(),
+      redirected: false,
+      type: 'basic' as ResponseType,
+      url: '',
+      clone: () => ({} as Response),
+      body: null,
+      bodyUsed: false,
+      arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+      blob: () => Promise.resolve(new Blob()),
+      formData: () => Promise.resolve(new FormData()),
+      text: () => Promise.resolve('')
+    } as Response);
+  
+  return mockFn;
 };
 
 export const waitFor = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

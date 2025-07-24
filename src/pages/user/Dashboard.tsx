@@ -52,10 +52,15 @@ export default function UserDashboard() {
     try {
       setLoading(true);
       
-      // Fetch student data
+      // Fetch student data with college information
       const { data: studentData, error: studentError } = await supabase
         .from('students')
-        .select('*')
+        .select(`
+          *,
+          colleges (
+            college_name
+          )
+        `)
         .eq('phone_number', phoneNumber)
         .eq('deleted', false)
         .single();
@@ -75,7 +80,7 @@ export default function UserDashboard() {
         email: studentData.email,
         year: studentData.year,
         branch: studentData.branch,
-        collegeName: studentData.college_name,
+        collegeName: studentData.colleges?.college_name || 'Not assigned',
         certificateCount: certificateCount,
         certificate: studentData.certificate,
         downloadedCount: studentData.downloaded_count,

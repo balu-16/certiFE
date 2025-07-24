@@ -12,7 +12,9 @@ import {
   X,
   BookOpen,
   Download,
-  FileCheck
+  FileCheck,
+  Image,
+  GraduationCap
 } from "lucide-react";
 import {
   Sidebar,
@@ -53,6 +55,8 @@ export function AppSidebar() {
   const adminNavItems = [
     { title: "Dashboard", url: "/admin/dashboard", icon: Home },
     { title: "Certificates", url: "/admin/certificates", icon: Award },
+    { title: "Templates", url: "/admin/templates", icon: Image },
+    { title: "Colleges", url: "/admin/colleges", icon: GraduationCap },
     { title: "Requests", url: "/admin/requests", icon: FileCheck },
     { title: "Courses", url: "/admin/courses", icon: BookOpen },
     { title: "Company Info", url: "/admin/company-info", icon: Building2 },

@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchCourses, fetchCompanies } from '@/integrations/supabase/database';
-import type { Course, Company } from '@/integrations/supabase/types';
+import type { Course, Company, College } from '@/integrations/supabase/types';
 
 interface StudentProfile {
   name: string;
@@ -22,7 +22,7 @@ interface StudentProfile {
   course: string;
   year: number;
   branch: string;
-  collegeName: string;
+  collegeId: number | null;
   certificateId: string;
   eligible: string;
   internshipStartDate: string;
@@ -38,6 +38,7 @@ export default function StudentInfo() {
   const [editedProfile, setEditedProfile] = useState<StudentProfile | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -53,19 +54,21 @@ export default function StudentInfo() {
           return;
         }
 
-        // Fetch courses and companies
-        const [coursesData, companiesData] = await Promise.all([
+        // Fetch courses, companies, and colleges
+        const [coursesData, companiesData, collegesData] = await Promise.all([
           fetchCourses(),
-          fetchCompanies()
+          fetchCompanies(),
+          supabase.from('colleges').select('*').order('college_name')
         ]);
         setCourses(coursesData);
         setCompanies(companiesData);
+        setColleges(collegesData.data || []);
 
         const { data: student, error } = await supabase
            .from('students')
            .select(`
              student_id, name, phone_number, email, created_at, year, branch, 
-             college_name, certificate_id, eligible, internship_start_date, 
+             college_id, certificate_id, eligible, internship_start_date, 
              internship_end_date, company_id, course_id, preferred_name
            `)
            .eq('phone_number', userPhone)
@@ -87,7 +90,7 @@ export default function StudentInfo() {
              course: 'Not assigned',
              year: student.year || 1,
              branch: student.branch || 'Not specified',
-             collegeName: student.college_name || 'NIGHA TECH',
+             collegeId: student.college_id,
              certificateId: student.certificate_id || 'Not assigned',
              eligible: student.eligible ? 'Yes' : 'No',
              internshipStartDate: student.internship_start_date || '',
@@ -145,7 +148,7 @@ export default function StudentInfo() {
           email: editedProfile.email,
           year: editedProfile.year,
           branch: editedProfile.branch,
-          college_name: editedProfile.collegeName,
+          college_id: editedProfile.collegeId,
           internship_start_date: editedProfile.internshipStartDate || null,
           internship_end_date: editedProfile.internshipEndDate || null,
           company_id: editedProfile.companyId,
@@ -182,6 +185,12 @@ export default function StudentInfo() {
 
   const handleInputChange = (field: keyof StudentProfile, value: string | number) => {
     if (!editedProfile) return;
+    
+    // Enforce character limit for name field
+    if (field === 'name' && typeof value === 'string' && value.length > 19) {
+      return; // Don't update if name exceeds 19 characters
+    }
+    
     setEditedProfile({
       ...editedProfile,
       [field]: value
@@ -251,7 +260,11 @@ export default function StudentInfo() {
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   disabled={!isEditing}
                   className="border-primary/20 focus:border-primary"
+                  maxLength={22}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Name should be less than 20 characters ({editedProfile.name.length}/22)
+                </p>
               </div>
 
               {/* Student ID */}
@@ -334,17 +347,34 @@ export default function StudentInfo() {
 
               {/* College Name */}
               <div className="space-y-2">
-                <Label htmlFor="collegeName" className="flex items-center gap-2">
+                <Label htmlFor="collegeId" className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-highlight" />
                   College Name
                 </Label>
-                <Input
-                  id="collegeName"
-                  value={editedProfile.collegeName}
-                  onChange={(e) => handleInputChange('collegeName', e.target.value)}
-                  disabled={!isEditing}
-                  className="border-primary/20 focus:border-primary"
-                />
+                {isEditing ? (
+                  <Select
+                    value={editedProfile.collegeId?.toString() || 'none'}
+                    onValueChange={(value) => handleInputChange('collegeId', value === 'none' ? null : parseInt(value))}
+                  >
+                    <SelectTrigger className="border-primary/20 focus:border-primary">
+                      <SelectValue placeholder="Select a college" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No college selected</SelectItem>
+                      {colleges.map((college) => (
+                        <SelectItem key={college.college_id} value={college.college_id.toString()}>
+                          {college.college_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    value={colleges.find(c => c.college_id === editedProfile.collegeId)?.college_name || 'Not assigned'}
+                    disabled
+                    className="border-primary/20 bg-muted"
+                  />
+                )}
               </div>
 
               {/* Preferred Name */}
@@ -379,14 +409,14 @@ export default function StudentInfo() {
                   </Label>
                   {isEditing ? (
                     <Select
-                      value={editedProfile.courseId?.toString() || ''}
-                      onValueChange={(value) => handleInputChange('courseId', value ? parseInt(value) : null)}
+                      value={editedProfile.courseId?.toString() || 'none'}
+                      onValueChange={(value) => handleInputChange('courseId', value === 'none' ? null : parseInt(value))}
                     >
                       <SelectTrigger className="border-primary/20 focus:border-primary">
                         <SelectValue placeholder="Select a course" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No course selected</SelectItem>
+                        <SelectItem value="none">No course selected</SelectItem>
                         {courses.map((course) => (
                           <SelectItem key={course.course_id} value={course.course_id.toString()}>
                             {course.course_name}
@@ -411,14 +441,14 @@ export default function StudentInfo() {
                   </Label>
                   {isEditing ? (
                     <Select
-                      value={editedProfile.companyId?.toString() || ''}
-                      onValueChange={(value) => handleInputChange('companyId', value ? parseInt(value) : null)}
+                      value={editedProfile.companyId?.toString() || 'none'}
+                      onValueChange={(value) => handleInputChange('companyId', value === 'none' ? null : parseInt(value))}
                     >
                       <SelectTrigger className="border-primary/20 focus:border-primary">
                         <SelectValue placeholder="Select a company" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No company selected</SelectItem>
+                        <SelectItem value="none">No company selected</SelectItem>
                         {companies.map((company) => (
                           <SelectItem key={company.company_id} value={company.company_id.toString()}>
                             {company.company_name}

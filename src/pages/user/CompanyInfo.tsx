@@ -108,8 +108,8 @@ export default function UserCompanyInfo() {
                 <div>
                   <div className="font-medium text-primary">Address</div>
                   <div className="text-sm text-muted-foreground">
-                    Mumbai, Maharashtra<br />
-                    India - 400001
+                    Vijayawada, Andhra Pradesh<br />
+                    India - 520003
                   </div>
                 </div>
               </div>
@@ -119,7 +119,7 @@ export default function UserCompanyInfo() {
                 <div>
                   <div className="font-medium text-primary">Phone</div>
                   <div className="text-sm text-muted-foreground">
-                    +91 98765 43210
+                    +91 82978 08410
                   </div>
                 </div>
               </div>
@@ -153,7 +153,7 @@ export default function UserCompanyInfo() {
                 <div>
                   <div className="font-medium text-primary">Students Trained</div>
                   <div className="text-sm text-muted-foreground">
-                    5000+ Students
+                    200+ Students
                   </div>
                 </div>
               </div>
@@ -163,7 +163,7 @@ export default function UserCompanyInfo() {
                 <div>
                   <div className="font-medium text-primary">Certificates Issued</div>
                   <div className="text-sm text-muted-foreground">
-                    8000+ Certificates
+                    100+ Certificates
                   </div>
                 </div>
               </div>
