@@ -6,15 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -113,7 +113,7 @@ export default function AdminTemplates() {
         });
         return;
       }
-      
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
@@ -123,7 +123,7 @@ export default function AdminTemplates() {
         });
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
@@ -149,7 +149,7 @@ export default function AdminTemplates() {
 
     try {
       setUploading(true);
-      
+
       // Check if template already exists for this company
       const existingTemplate = templates.find(t => t.company_id === parseInt(selectedCompanyId));
       if (existingTemplate) {
@@ -230,8 +230,24 @@ export default function AdminTemplates() {
     }
   };
 
-  const handleToggleSelected = async (templateId: number, currentSelected: boolean) => {
+  const handleToggleSelected = async (templateId: number, currentSelected: boolean, companyId: number) => {
     try {
+      // If selecting a template, first check if another template for the same company is already selected
+      if (!currentSelected) {
+        const existingSelectedTemplate = templates.find(t =>
+          t.company_id === companyId && t.is_selected && t.id !== templateId
+        );
+
+        if (existingSelectedTemplate) {
+          toast({
+            title: "Error",
+            description: "Only one template can be selected per company. Please deselect the current template first.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from('templates')
         .update({ is_selected: !currentSelected })
@@ -345,9 +361,9 @@ export default function AdminTemplates() {
                     </p>
                   )}
                 </div>
-                <Button 
-                  onClick={handleAddTemplate} 
-                  className="w-full" 
+                <Button
+                  onClick={handleAddTemplate}
+                  className="w-full"
                   disabled={uploading || !selectedCompanyId || !selectedFile}
                 >
                   {uploading ? (
@@ -380,7 +396,7 @@ export default function AdminTemplates() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Companies with Templates</CardTitle>
@@ -422,8 +438,8 @@ export default function AdminTemplates() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Company</TableHead>
-                    <TableHead>Template Preview</TableHead>
-                    <TableHead>Selected</TableHead>
+                    <TableHead className="text-center">Template Preview</TableHead>
+                    <TableHead className="text-center">Selected</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -435,20 +451,22 @@ export default function AdminTemplates() {
                         <div className="font-medium">{template.company_name}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <img 
-                            src={template.template} 
-                            alt="Template preview" 
+                        <div className="flex items-center justify-center">
+                          <img
+                            src={template.template}
+                            alt="Template preview"
                             className="w-16 h-12 object-cover rounded border"
                           />
-                          <Badge variant="secondary">Custom Image</Badge>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Checkbox
-                          checked={template.is_selected || false}
-                          onCheckedChange={() => handleToggleSelected(template.id, template.is_selected || false)}
-                        />
+                        <div className="flex items-center justify-center">
+                          <Checkbox
+                            checked={template.is_selected || false}
+                            onCheckedChange={() => handleToggleSelected(template.id, template.is_selected || false, template.company_id)}
+                            className="w-5 h-5 border-2 border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          />
+                        </div>
                       </TableCell>
                       <TableCell>
                         {new Date(template.created_at).toLocaleDateString()}
