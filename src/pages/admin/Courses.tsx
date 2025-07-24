@@ -54,7 +54,7 @@ export default function AdminCourses() {
       const { data, error } = await supabase
         .from('courses')
         .select('*')
-        .order('course_name');
+        .order('course_id');
 
       if (error) {
         console.error('Error fetching courses:', error);
