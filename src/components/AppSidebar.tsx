@@ -54,7 +54,7 @@ export function AppSidebar() {
 
   const adminNavItems = [
     { title: "Dashboard", url: "/admin/dashboard", icon: Home },
-    { title: "Certificates", url: "/admin/certificates", icon: Award },
+    { title: "Students", url: "/admin/certificates", icon: Users },
     { title: "Templates", url: "/admin/templates", icon: Image },
     { title: "Colleges", url: "/admin/colleges", icon: GraduationCap },
     { title: "Requests", url: "/admin/requests", icon: FileCheck },

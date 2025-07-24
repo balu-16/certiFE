@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Table, 
   TableBody, 
@@ -229,6 +230,32 @@ export default function AdminTemplates() {
     }
   };
 
+  const handleToggleSelected = async (templateId: number, currentSelected: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('templates')
+        .update({ is_selected: !currentSelected })
+        .eq('id', templateId);
+
+      if (error) {
+        console.error('Error updating template selection:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update template selection",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `Template ${!currentSelected ? 'selected' : 'deselected'} successfully`,
+        });
+        fetchTemplates();
+      }
+    } catch (error) {
+      console.error('Error in handleToggleSelected:', error);
+    }
+  };
+
   const previewTemplate = (templateData: string) => {
     // Create a new window to display the image
     const newWindow = window.open('', '_blank');
@@ -396,6 +423,7 @@ export default function AdminTemplates() {
                   <TableRow>
                     <TableHead>Company</TableHead>
                     <TableHead>Template Preview</TableHead>
+                    <TableHead>Selected</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -415,6 +443,12 @@ export default function AdminTemplates() {
                           />
                           <Badge variant="secondary">Custom Image</Badge>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Checkbox
+                          checked={template.is_selected || false}
+                          onCheckedChange={() => handleToggleSelected(template.id, template.is_selected || false)}
+                        />
                       </TableCell>
                       <TableCell>
                         {new Date(template.created_at).toLocaleDateString()}

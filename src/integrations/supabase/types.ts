@@ -250,18 +250,21 @@ export interface Database {
           template: string
           company_id: number
           created_at: string
+          is_selected: boolean
         }
         Insert: {
           id?: number
           template: string
           company_id: number
           created_at?: string
+          is_selected?: boolean
         }
         Update: {
           id?: number
           template?: string
           company_id?: number
           created_at?: string
+          is_selected?: boolean
         }
         Relationships: [
           {
